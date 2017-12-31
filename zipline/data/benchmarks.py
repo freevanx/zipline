@@ -14,6 +14,7 @@
 # limitations under the License.
 import numpy as np
 import pandas as pd
+from sqlalchemy import create_engine
 
 import pandas_datareader.data as pd_reader
 
@@ -43,18 +44,21 @@ def get_benchmark_returns(symbol, first_date, last_date):
     first_date is **not** included because we need the close from day N - 1 to
     compute the returns for day N.
     """
-    data = pd_reader.DataReader(
-        symbol,
-        'google',
-        first_date,
-        last_date
-    )
+    # data = pd_reader.DataReader(
+    #     symbol,
+    #     'google',
+    #     first_date,
+    #     last_date
+    # )
+
+    hist_db_engine = create_engine('sqlite:///us_stock_history.db')
+    data = pd.read_sql_table (symbol, hist_db_engine, index_col='Date')
 
     data = data['Close']
 
-    data[pd.Timestamp('2008-12-15')] = np.nan
-    data[pd.Timestamp('2009-08-11')] = np.nan
-    data[pd.Timestamp('2012-02-02')] = np.nan
+    #data[pd.Timestamp('2008-12-15')] = np.nan
+    #data[pd.Timestamp('2009-08-11')] = np.nan
+    #data[pd.Timestamp('2012-02-02')] = np.nan
 
     data = data.fillna(method='ffill')
 
